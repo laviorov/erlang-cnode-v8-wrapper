@@ -7,7 +7,7 @@
   "rm gtest-all.o"
 
 ## Todo
-  ## 1. Reimplement threadpool.
+  ### 1. Reimplement threadpool.
 
 ## Docs
 
