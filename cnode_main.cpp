@@ -11,11 +11,11 @@ void freeErlMessage(ErlMessage*& msg);
 
 int main(int argc, char **argv) {
 
-  fs::path pathToLibs("/home/eduardb/Documents/work/corezoid/v8/wrapper"); // absolute path here
+  fs::path pathToLibs(argv[1]); // absolute path here
 
   const std::size_t maxExecutionTime = 1000; // milliseconds
   const std::size_t timeCheckerSleepTime = 500; // milliseconds
-  const std::size_t maxRAMAvailable = std::stoi(argv[1]);
+  const std::size_t maxRAMAvailable = std::stoi(argv[2]);
   const std::size_t threadsCount = 4;
 
   auto v8 = std::make_shared<pb::V8Runner>(
@@ -40,9 +40,9 @@ int main(int argc, char **argv) {
   int loop = 1;                            /* Loop flag */
   unsigned char buf[BUFSIZE];              /* Buffer for incoming message */
 
-  auto id = atoi(argv[2]);
-  auto parent_node_name = argv[3];
-  auto cookie = argv[4];
+  auto id = atoi(argv[3]);
+  auto parent_node_name = argv[4];
+  auto cookie = argv[5];
 
   erl_init(NULL, 0);
 
