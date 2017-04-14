@@ -11,6 +11,8 @@
 #include <condition_variable>
 #include <atomic>
 
+#include "atomwrapper.h"
+
 namespace pb {
 namespace concurrent {
 
@@ -31,7 +33,7 @@ class ThreadPool {
     std::deque<queueItem>,
     QueueItemCompare
   > queue;
-  std::vector<std::atomic_int> jobsPerThread;
+  std::vector<AtomWrapper<std::size_t>> jobsPerThread;
 
   std::atomic_int         busyThreads;
   std::atomic_int         jobs_left;
@@ -146,7 +148,7 @@ public:
     return queue.size();
   }
 
-  inline std::vector<std::atomic_int> getJobsPerThread() {
+  inline std::vector<AtomWrapper<std::size_t>> getJobsPerThread() {
     return this->jobsPerThread;
   }
 
