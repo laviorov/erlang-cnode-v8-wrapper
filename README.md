@@ -2,9 +2,9 @@
   ### 1. You need to have icu-56 lib.
 
 ## Compile gtest
-  "g++ -I gtest/include/ -I gtest/ -c gtest/src/gtest-all.cc",__
-  "ar -rv lib/libgtest.a gtest-all.o",__
-  "rm gtest-all.o"__
+  "g++ -I gtest/include/ -I gtest/ -c gtest/src/gtest-all.cc",<br />
+  "ar -rv lib/libgtest.a gtest-all.o",<br />
+  "rm gtest-all.o"<br />
 
 ## Todo
   ### 1. Reimplement threadpool.
