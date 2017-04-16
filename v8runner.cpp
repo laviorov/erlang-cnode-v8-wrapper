@@ -215,15 +215,15 @@ std::tuple<int, std::string> V8Runner::_checkCode(
   auto isolate = std::get<0>(isolateData);
   auto iData = std::get<1>(isolateData);
 
-  {
-    std::shared_ptr<v8::Isolate> freeIsolate(
-      isolate,
-      [&iData](v8::Isolate* ptr) {
-        iData->clean(); // clean up context and template
-        ptr->Dispose(); // and then clean up isolate
-      }
-    );
+  std::shared_ptr<v8::Isolate> freeIsolate(
+    isolate,
+    [&iData](v8::Isolate* ptr) {
+      iData->clean(); // clean up context and template
+      ptr->Dispose(); // and then clean up isolate
+    }
+  );
 
+  {
     v8::Locker locker(isolate);
     v8::Isolate::Scope isolate_scope(isolate);
     v8::HandleScope scope(isolate);
@@ -305,14 +305,6 @@ std::tuple<int, std::string> V8Runner::_compile(
 
   std::unique_lock<std::shared_mutex> lock(this->_compileMutex);
 
-  {
-    // clean the function - if we already compiled this pair of conv and node
-    auto it = this->_functions.find(std::make_pair(conv, node));
-    if (it != this->_functions.end()) {
-      it->second.Reset();
-    }
-  }
-
   v8::Isolate* isolate = nullptr;
 
   {
@@ -342,6 +334,14 @@ std::tuple<int, std::string> V8Runner::_compile(
 
     v8::TryCatch try_catch(isolate);
 
+    {
+      // clean the function - if we already compiled this pair of conv and node
+      auto it = this->_functions.find(std::make_pair(conv, node));
+      if (it != this->_functions.end()) {
+        it->second.Reset();
+      }
+    }
+
     // compile
 
     v8::Local<v8::Script> compiled_script;
@@ -362,7 +362,8 @@ std::tuple<int, std::string> V8Runner::_compile(
       return retValue;
     }
 
-    this->_functions[std::make_pair(conv, node)] = PersistentFunction(isolate, result.As<v8::Function>());
+    this->_functions[std::make_pair(conv, node)] =
+      PersistentFunction(isolate, result.As<v8::Function>());
 
   }
 
@@ -376,18 +377,31 @@ std::tuple<int, std::string> V8Runner::_remove(
   const char* conv,
   const char* node) {
 
-  std::tuple<int, std::string> retValue;
+  std::tuple<int, std::string> retValue = { STATUS::NO_ERR, "" };
 
-  auto key = std::make_pair(Conv(conv), Node(node));
+  v8::Isolate* isolate = nullptr;
 
   std::unique_lock<std::shared_mutex> lock(this->_compileMutex);
 
-  auto it = this->_functions.find(key);
-  if (it != this->_functions.end()) {
-    it->second.Reset();
+  {
+    auto isolateItr = this->_convs.find(conv);
+    if (isolateItr == this->_convs.end()) {
+      return retValue;
+    } else {
+      isolate = isolateItr->second;
+    }
   }
 
-  std::get<ERR_CODE>(retValue) = STATUS::NO_ERR;
+  auto key = std::make_pair(Conv(conv), Node(node));
+
+  {
+    v8::Locker locker(isolate);
+
+    auto it = this->_functions.find(key);
+    if (it != this->_functions.end()) {
+      it->second.Reset();
+    }
+  }
 
   return retValue;
 }
