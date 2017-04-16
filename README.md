@@ -14,7 +14,7 @@
 ### Start Erlang shell
   erl -name cnode@localhost.localdomain -setcookie cookie
 ### Start CNode
-  valgrind --leak-check=full --show-leak-kinds=all  ./bin/cserver 16 1 cnode@localhost.localdomain cookie
+  valgrind --leak-check=full --show-leak-kinds=all  ./bin/cserver <DIR_WITH_LIBS> <RAM> 1 cnode@localhost.localdomain cookie
 
 ### get_statistics
   {any, 'c1@localhost'} ! {call, self(), {TIMESTAMP_IN_MILLISECONDS, get_statistics}}.
