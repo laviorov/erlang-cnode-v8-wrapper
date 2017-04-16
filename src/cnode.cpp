@@ -20,7 +20,7 @@ void CNode::process(int fd, ErlMessage*& emsg) {
   const auto timeNow =
     std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch());
 
-  auto timeDiff = abs(static_cast<long long>(timeNow.count()) - static_cast<long long>(timestamp));
+  std::size_t timeDiff = abs(static_cast<long long>(timeNow.count()) - static_cast<long long>(timestamp));
 
   if (timeDiff > this->_maxDiffTime) {
     auto resp = ETERMptr(erl_format("{cnode, ~i, ~b}", CNode::STATUS::SOCKET_TIMEOUT, "Socket queue timeout."), ErlFreeTerm);

@@ -67,8 +67,8 @@ public:
 
 private:
   std::shared_ptr<pb::V8Runner> _v8;
-  ThreadPool _pool;
   std::size_t _maxDiffTime;
+  ThreadPool _pool;
 
   std::unordered_map<std::string, int> _priorityMap {
     {"check_code", 0},

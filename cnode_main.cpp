@@ -32,13 +32,10 @@ int main(int argc, char **argv) {
 
   auto cnode = std::make_shared<CNode>(v8, maxDiffTime, threadsCount);
 
-  struct in_addr addr;                     /* 32-bit IP number of host */
-  int port;                                /* Listen port number */
-  int listen;                              /* Listen socket */
-  int fd;                                  /* fd to Erlang node */
+  int fd;
 
-  int loop = 1;                            /* Loop flag */
-  unsigned char buf[BUFSIZE];              /* Buffer for incoming message */
+  int loop = 1;
+  unsigned char buf[BUFSIZE];
 
   auto id = atoi(argv[3]);
   auto parent_node_name = argv[4];
