@@ -29,13 +29,13 @@ void CNode::process(int fd, ErlMessage*& emsg) {
   }
 
   if (strcmp(ERL_ATOM_PTR(func.get()), "get_statistics") == 0) {
-    std::size_t poolThreadsCount = this->_pool.Size();
-    std::size_t threadsBusy = this->_pool.numberOfBusyThreads();
-    std::size_t jobsRemaining = this->_pool.JobsRemaining();
+    int poolThreadsCount = this->_pool.size();
+    int threadsBusy = this->_pool.getBusyThreads();
+    int jobsLeft = this->_pool.getJobsLeft();
     std::size_t isolates_count = this->_v8->isolates_count();
 
-    std::vector<AtomWrapper<std::size_t>> jobsPerThread = this->_pool.getJobsPerThread();
-    const std::size_t jobsPerThreadSize = jobsPerThread.size();
+    auto jobsPerThread = this->_pool.getJobsPerThread();
+    auto jobsPerThreadSize = jobsPerThread.size();
 
     std::shared_ptr<ETERM*> jobsPerThread_e = make_shared_array<ETERM*>(jobsPerThreadSize);
     auto arr = jobsPerThread_e.get();
@@ -58,7 +58,7 @@ void CNode::process(int fd, ErlMessage*& emsg) {
                    "{pool_threads_count, ~i},"
                    "{isolates_count, ~i},"
                    "{theads_busy, ~i},"
-                   "{jobs_remaining, ~i},"
+                   "{jobs_left, ~i},"
                    "{jobs_per_threads, ~w}"
                  "]"
                  "}",
@@ -66,7 +66,7 @@ void CNode::process(int fd, ErlMessage*& emsg) {
                   poolThreadsCount,
                   isolates_count,
                   threadsBusy,
-                  jobsRemaining,
+                  jobsLeft,
                   jobsPerThreadTerm.get()),
       ErlFreeTerm);
 
@@ -201,7 +201,7 @@ void CNode::process(int fd, ErlMessage*& emsg) {
     ); // _1 for thread num
     int priority = this->_priorityMap[ERL_ATOM_PTR(func.get())];
 
-    this->_pool.AddJob(priority, job);
+    this->_pool.addJob(priority, job);
   }
 
 }
