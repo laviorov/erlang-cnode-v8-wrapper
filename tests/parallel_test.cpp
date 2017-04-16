@@ -63,12 +63,12 @@ int main(int argc, char* argv[]) {
     (function(data) {
       require('libs/moment.js');
       moment();
-      data.a += 1;
+      data.forEach(item => item.a = 10);
       return data;
     })
   )SCRIPT";
 
-  const std::string bigJSONs = readFile("./memory_tests/big.json");
+  const std::string bigJSONs = readFile("./data/big.json");
 
   fs::path pathToLibs(argv[1]);
 
