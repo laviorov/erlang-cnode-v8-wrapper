@@ -169,7 +169,7 @@ int main(int argc, char* argv[]) {
   pool->joinAll();
 
   auto amountOfJobs = pool->getAmountOfDoneJobs();
-  CHECK(amountOfJobs == 1000, "getAmountOfJobs incorrect");
+  CHECK(amountOfJobs == N, "getAmountOfJobs incorrect");
 
   return 0;
 }
