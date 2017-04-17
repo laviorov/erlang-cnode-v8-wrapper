@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
     })
   )SCRIPT";
 
-  const std::string bigJSONs = readFile("./data/big.json");
+  const std::string bigJSON = readFile("./data/big.json");
 
   fs::path pathToLibs(argv[1]);
 
@@ -119,13 +119,13 @@ int main(int argc, char* argv[]) {
     auto threadId = omp_get_num_threads();
 
     if (command == "check") {
-      auto res = v8->checkCode(src.c_str(), bigJSONs.c_str(), threadId);
+      auto res = v8->checkCode(src.c_str(), "{}", threadId);
       CHECK(std::get<0>(res) == pb::V8Runner::STATUS::NO_ERR, std::get<1>(res).c_str());
     } else if (command == "compile") {
       auto res = v8->compile(pair.first.c_str(), pair.second.c_str(), src.c_str());
       CHECK(std::get<0>(res) == pb::V8Runner::STATUS::NO_ERR, std::get<1>(res).c_str());
     } else if (command == "run") {
-      auto res = v8->run(pair.first.c_str(), pair.second.c_str(), bigJSONs.c_str(), threadId);
+      auto res = v8->run(pair.first.c_str(), pair.second.c_str(), bigJSON.c_str(), threadId);
       CHECK(
         std::get<0>(res) == pb::V8Runner::STATUS::NO_ERR ||
         std::get<0>(res) == pb::V8Runner::STATUS::NOT_FOUND_PAIR_ERR ||

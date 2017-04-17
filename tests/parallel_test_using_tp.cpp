@@ -74,7 +74,7 @@ int main(int argc, char* argv[]) {
     })
   )SCRIPT";
 
-  const std::string bigJSONs = readFile("./data/big.json");
+  const std::string bigJSON = readFile("./data/big.json");
 
   fs::path pathToLibs(argv[1]);
 
@@ -134,11 +134,11 @@ int main(int argc, char* argv[]) {
         CHECK(std::get<0>(res) == pb::V8Runner::STATUS::NO_ERR, std::get<1>(res).c_str());
       });
     } else if (command == "run") {
-      pool->addJob(0, [pair, &v8](std::size_t threadNum){
+      pool->addJob(0, [bigJSON, pair, &v8](std::size_t threadNum){
         auto res = v8->run(
           pair.first.c_str(),
           pair.second.c_str(),
-          "{\"a\": 1, \"b\": 2, \"arr\": [1, 2, 3]}"
+          bigJSON.c_str()
         );
         CHECK(
           std::get<0>(res) == pb::V8Runner::STATUS::NO_ERR ||
