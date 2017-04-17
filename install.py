@@ -54,7 +54,7 @@ def help():
         In order to install:
             deps - ./install.py deps
             v8 - ./install.py v8 <version>
-            tests - ./install.py tests
+            tests - ./install.py tests <path_to_v8>
             cnode - ./install.py cnode <path_to_v8>
     """)
 
@@ -76,7 +76,7 @@ def setUp():
 def deps():
     with cd('./deps/icu-56/source'):
         if os.system('./configure --prefix={build}'.format(**DIRS)) == 0:
-            if os.system('make -j4') == 0 and os.system('make install') == 0:
+            if os.system('make -j4 && make install && make clean') == 0:
                 print('icu-56 has been installed!')
             else:
                 print('Problem during make icu-56')
