@@ -22,24 +22,30 @@ def cd(newdir):
 
 
 DIRS = {
+    'build': 'build',
     'bin': 'bin',
     'obj': 'obj',
     'src': 'src',
     'lib': 'lib',
     'include': 'include',
-    'icu56': 'deps/icu-56/',
     'erlangInclude': '/usr/local/lib/erlang/usr/include/',
     'erlangLibs': '/usr/local/lib/erlang/lib/erl_interface-3.9.2/lib',
+    'gtest': 'tests/gtest',
+    'tests': 'tests'
 }
 
 FILES = {
     'cnode': 'cnode',
+    'tests': 'tests',
     'libv8runner': 'libv8runner.so',
-    'ov8runner': 'v8runner.o'
+    'ov8runner': 'v8runner.o',
+    'libgtest': 'libgtest.a',
+    'parallelTest': 'parallel_test',
+    'parallelTestTp': 'parallel_test_tp'
 }
 
 DIRS = {key: fullPath(value) for key, value in DIRS.iteritems()}
-# FILES = {key: fullPath(value) for key, value in FILES.iteritems()}
+
 
 def help():
     print("""
@@ -54,6 +60,9 @@ def help():
 
 
 def setUp():
+    if not os.path.exists(DIRS['build']):
+        os.makedirs(DIRS['build'])
+
     if not os.path.exists(DIRS['bin']):
         os.makedirs(DIRS['bin'])
 
@@ -64,11 +73,10 @@ def setUp():
         os.makedirs(DIRS['lib'])
 
 
-
 def deps():
     with cd('./deps/icu-56/source'):
-        if subprocess.call('./configure', shell=True) == 0:
-            if subprocess.call('make -j4', shell=True) == 0:
+        if os.system('./configure --prefix={build}'.format(**DIRS)) == 0:
+            if os.system('make -j4') == 0 and os.system('make install') == 0:
                 print('icu-56 has been installed!')
             else:
                 print('Problem during make icu-56')
@@ -83,8 +91,8 @@ def cnode(v8Path):
 
     commands = [
         'g++ -c -o {obj}/{ov8runner} -fpic {src}/v8runner.cpp -I{include} -I{v8}/include/ -Wall -Werror -std=c++17'.format(**VARS),
-        'g++ -shared -o {lib}/{libv8runner} {obj}/{ov8runner} {v8}/out.gn/x64.release/obj/v8_libplatform/*.o {v8}/out.gn/x64.release/obj/v8_libbase/*.o -L{icu56}/source/lib -lpthread -licuuc -licui18n -licuio -licudata -Wall -Werror -std=c++17'.format(**VARS),
-        'g++ -o {bin}/{cnode} -I{include} -I{v8}/include/ -I{erlangInclude} -L{icu56}/source/lib -L{lib} -L{v8}/out.gn/x64.release/ -L{erlangLibs} cnode_main.cpp {src}/cnode.cpp -lerl_interface -lei -lnsl -lpthread -licuuc -licui18n -licuio -licudata {lib}/{libv8runner} -lv8 -std=c++17 -lstdc++fs -Wall -Werror -Wno-write-strings -Wl,-rpath-link,{v8}/out.gn/x64.release/'.format(**VARS),
+        'g++ -shared -o {lib}/{libv8runner} {obj}/{ov8runner} {v8}/out.gn/x64.release/obj/v8_libplatform/*.o {v8}/out.gn/x64.release/obj/v8_libbase/*.o -L{build}/lib -L{v8}/out.gn/x64.release -lpthread -licuuc -licui18n -licuio -licudata -Wall -Werror -std=c++17'.format(**VARS),
+        'g++ -o {bin}/{cnode} -I{include} -I{v8}/include/ -I{erlangInclude} -L{build}/lib -L{lib} -L{v8}/out.gn/x64.release/ -L{erlangLibs} cnode_main.cpp {src}/cnode.cpp -lerl_interface -lei -lnsl -lpthread -licuuc -licui18n -licuio -licudata {lib}/{libv8runner} -lv8 -std=c++17 -lstdc++fs -Wall -Werror -Wno-write-strings -Wl,-rpath-link,{v8}/out.gn/x64.release/'.format(**VARS),
     ]
 
     for command in commands:
@@ -92,6 +100,43 @@ def cnode(v8Path):
         os.system(command)
 
     # TODO: set LD_LIBRARY_PATH /home/eduardb/Documents/work/corezoid/v8/icu-56/source/lib:/home/eduardb/Documents/work/corezoid/v8/wrapper/lib:/home/eduardb/Documents/work/corezoid/v8/v8/out.gn/x64.release
+
+
+def gtest():
+    commands = [
+        "g++ -I include -I . -c src/gtest-all.cc",
+        "ar -rv {lib}/libgtest.a gtest-all.o".format(**DIRS),
+        "rm gtest-all.o"
+    ];
+
+    with cd(DIRS['gtest']):
+        for command in commands:
+            os.system(command)
+
+
+def tests(v8Path):
+    gtest()
+
+    VARS = DIRS.copy()
+    VARS.update(FILES)
+    VARS['v8'] = fullPath(v8Path)
+
+    commands = [
+        'g++ -c -o {obj}/{ov8runner} -fpic {src}/v8runner.cpp -I{include} -I{v8}/include/ -Wall -Werror -std=c++17'.format(**VARS),
+        'g++ -shared -o {lib}/{libv8runner} {obj}/{ov8runner} {v8}/out.gn/x64.release/obj/v8_libplatform/*.o {v8}/out.gn/x64.release/obj/v8_libbase/*.o -L{build}/lib -L{v8}/out.gn/x64.release -lpthread -licuuc -licui18n -licuio -licudata -Wall -Werror -std=c++17'.format(**VARS),
+        "g++ -fopenmp -o {bin}/{tests} -I{include} -I{v8}/include/ -I{gtest}/include -L{build}/lib -L{lib} -L{v8}/out.gn/x64.release/ {tests}/test.cpp {lib}/{libgtest} -lpthread -licuuc -licui18n -licuio -licudata {lib}/{libv8runner} -lv8 -std=c++17 -lstdc++fs -Wl,-rpath-link,{v8}/out.gn/x64.release/".format(**VARS),
+        "g++ -fopenmp -o {bin}/{parallelTest} -I{include} -I{v8}/include/ -I{gtest}/include -L{build}/lib -L{lib} -L{v8}/out.gn/x64.release/ {tests}/parallel_test.cpp -lpthread -licuuc -licui18n -licuio -licudata {lib}/{libv8runner} -lv8 -std=c++17 -lstdc++fs -Wl,-rpath-link,{v8}/out.gn/x64.release/".format(**VARS),
+        "g++ -fopenmp -o {bin}/{parallelTestTp} -I{include} -I{v8}/include/ -I{gtest}/include -L{build}/lib -L{lib} -L{v8}/out.gn/x64.release/ {tests}/parallel_test_using_tp.cpp -lpthread -licuuc -licui18n -licuio -licudata {lib}/{libv8runner} -lv8 -std=c++17 -lstdc++fs -Wl,-rpath-link,{v8}/out.gn/x64.release/".format(**VARS),
+    ];
+
+    for command in commands:
+        print(command)
+        os.system(command)
+
+    os.system('cp -R {tests}/data {bin}/data'.format(**VARS))
+
+    os.system('cp {v8}/out.gn/x64.release/natives_blob.bin {bin}'.format(**VARS))
+    os.system('cp {v8}/out.gn/x64.release/snapshot_blob.bin {bin}'.format(**VARS))
 
 
 if __name__ == '__main__':
@@ -111,5 +156,11 @@ if __name__ == '__main__':
         else:
             v8Path = sys.argv[1]
             cnode(v8Path)
+    elif sys.argv[0] == 'tests':
+        if len(sys.argv) <= 1:
+            print('Please, provide path for v8 dir.')
+        else:
+            v8Path = sys.argv[1]
+            tests(v8Path)
     else:
         help()
