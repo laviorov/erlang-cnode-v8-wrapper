@@ -20,6 +20,7 @@ def cd(newdir):
     finally:
         os.chdir(prevdir)
 
+COMPILER = 'g++'
 
 DIRS = {
     'build': 'build',
@@ -88,11 +89,12 @@ def cnode(v8Path):
     VARS = DIRS.copy()
     VARS.update(FILES)
     VARS['v8'] = fullPath(v8Path)
+    VARS['compiler'] = COMPILER
 
     commands = [
-        'g++ -c -o {obj}/{ov8runner} -fpic {src}/v8runner.cpp -I{include} -I{v8}/include/ -Wall -Werror -std=c++17'.format(**VARS),
-        'g++ -shared -o {lib}/{libv8runner} {obj}/{ov8runner} {v8}/out.gn/x64.release/obj/v8_libplatform/*.o {v8}/out.gn/x64.release/obj/v8_libbase/*.o -L{build}/lib -L{v8}/out.gn/x64.release -lpthread -licuuc -licui18n -licuio -licudata -Wall -Werror -std=c++17'.format(**VARS),
-        'g++ -o {bin}/{cnode} -I{include} -I{v8}/include/ -I{erlangInclude} -L{build}/lib -L{lib} -L{v8}/out.gn/x64.release/ -L{erlangLibs} cnode_main.cpp {src}/cnode.cpp -lerl_interface -lei -lnsl -lpthread -licuuc -licui18n -licuio -licudata {lib}/{libv8runner} -lv8 -std=c++17 -lstdc++fs -Wall -Werror -Wno-write-strings -Wl,-rpath-link,{v8}/out.gn/x64.release/'.format(**VARS),
+        '{compiler} -c -o {obj}/{ov8runner} -fpic {src}/v8runner.cpp -I{include} -I{v8}/include/ -Wall -Werror -std=c++17'.format(**VARS),
+        '{compiler} -shared -o {lib}/{libv8runner} {obj}/{ov8runner} {v8}/out.gn/x64.release/obj/v8_libplatform/*.o {v8}/out.gn/x64.release/obj/v8_libbase/*.o -L{build}/lib -L{v8}/out.gn/x64.release -lpthread -licuuc -licui18n -licuio -licudata -Wall -Werror -std=c++17'.format(**VARS),
+        '{compiler} -o {bin}/{cnode} -I{include} -I{v8}/include/ -I{erlangInclude} -L{build}/lib -L{lib} -L{v8}/out.gn/x64.release/ -L{erlangLibs} cnode_main.cpp {src}/cnode.cpp -lerl_interface -lei -lnsl -lpthread -licuuc -licui18n -licuio -licudata {lib}/{libv8runner} -lv8 -std=c++17 -lstdc++fs -Wall -Werror -Wno-write-strings -Wl,-rpath-link,{v8}/out.gn/x64.release/'.format(**VARS),
     ]
 
     for command in commands:
@@ -104,7 +106,7 @@ def cnode(v8Path):
 
 def gtest():
     commands = [
-        "g++ -I include -I . -c src/gtest-all.cc",
+        "{compiler} -I include -I . -c src/gtest-all.cc".format(compiler=COMPILER),
         "ar -rv {lib}/libgtest.a gtest-all.o".format(**DIRS),
         "rm gtest-all.o"
     ];
@@ -120,13 +122,14 @@ def tests(v8Path):
     VARS = DIRS.copy()
     VARS.update(FILES)
     VARS['v8'] = fullPath(v8Path)
+    VARS['compiler'] = COMPILER
 
     commands = [
-        'g++ -c -o {obj}/{ov8runner} -fpic {src}/v8runner.cpp -I{include} -I{v8}/include/ -Wall -Werror -std=c++17'.format(**VARS),
-        'g++ -shared -o {lib}/{libv8runner} {obj}/{ov8runner} {v8}/out.gn/x64.release/obj/v8_libplatform/*.o {v8}/out.gn/x64.release/obj/v8_libbase/*.o -L{build}/lib -L{v8}/out.gn/x64.release -lpthread -licuuc -licui18n -licuio -licudata -Wall -Werror -std=c++17'.format(**VARS),
-        "g++ -fopenmp -o {bin}/{tests} -I{include} -I{v8}/include/ -I{gtest}/include -L{build}/lib -L{lib} -L{v8}/out.gn/x64.release/ {tests}/test.cpp {lib}/{libgtest} -lpthread -licuuc -licui18n -licuio -licudata {lib}/{libv8runner} -lv8 -std=c++17 -lstdc++fs -Wl,-rpath-link,{v8}/out.gn/x64.release/".format(**VARS),
-        "g++ -fopenmp -o {bin}/{parallelTest} -I{include} -I{v8}/include/ -I{gtest}/include -L{build}/lib -L{lib} -L{v8}/out.gn/x64.release/ {tests}/parallel_test.cpp -lpthread -licuuc -licui18n -licuio -licudata {lib}/{libv8runner} -lv8 -std=c++17 -lstdc++fs -Wl,-rpath-link,{v8}/out.gn/x64.release/".format(**VARS),
-        "g++ -fopenmp -o {bin}/{parallelTestTp} -I{include} -I{v8}/include/ -I{gtest}/include -L{build}/lib -L{lib} -L{v8}/out.gn/x64.release/ {tests}/parallel_test_using_tp.cpp -lpthread -licuuc -licui18n -licuio -licudata {lib}/{libv8runner} -lv8 -std=c++17 -lstdc++fs -Wl,-rpath-link,{v8}/out.gn/x64.release/".format(**VARS),
+        '{compiler} -c -o {obj}/{ov8runner} -fpic {src}/v8runner.cpp -I{include} -I{v8}/include/ -Wall -Werror -std=c++17'.format(**VARS),
+        '{compiler} -shared -o {lib}/{libv8runner} {obj}/{ov8runner} {v8}/out.gn/x64.release/obj/v8_libplatform/*.o {v8}/out.gn/x64.release/obj/v8_libbase/*.o -L{build}/lib -L{v8}/out.gn/x64.release -lpthread -licuuc -licui18n -licuio -licudata -Wall -Werror -std=c++17'.format(**VARS),
+        "{compiler} -fopenmp -o {bin}/{tests} -I{include} -I{v8}/include/ -I{gtest}/include -L{build}/lib -L{lib} -L{v8}/out.gn/x64.release/ {tests}/test.cpp {lib}/{libgtest} -lpthread -licuuc -licui18n -licuio -licudata {lib}/{libv8runner} -lv8 -std=c++17 -lstdc++fs -Wl,-rpath-link,{v8}/out.gn/x64.release/".format(**VARS),
+        "{compiler} -fopenmp -o {bin}/{parallelTest} -I{include} -I{v8}/include/ -I{gtest}/include -L{build}/lib -L{lib} -L{v8}/out.gn/x64.release/ {tests}/parallel_test.cpp -lpthread -licuuc -licui18n -licuio -licudata {lib}/{libv8runner} -lv8 -std=c++17 -lstdc++fs -Wl,-rpath-link,{v8}/out.gn/x64.release/".format(**VARS),
+        "{compiler} -fopenmp -o {bin}/{parallelTestTp} -I{include} -I{v8}/include/ -I{gtest}/include -L{build}/lib -L{lib} -L{v8}/out.gn/x64.release/ {tests}/parallel_test_using_tp.cpp -lpthread -licuuc -licui18n -licuio -licudata {lib}/{libv8runner} -lv8 -std=c++17 -lstdc++fs -Wl,-rpath-link,{v8}/out.gn/x64.release/".format(**VARS),
     ];
 
     for command in commands:
