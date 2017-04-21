@@ -53,8 +53,9 @@ namespace concurrent {
     }
 
   public:
-    ThreadPool(const std::size_t& threadCount)
+    ThreadPool(const std::size_t& threadCount, const size_t& _maxQueueSize)
       : jobsPerThread(threadCount)
+      , maxQueueSize(maxQueueSize)
       , jobsLeft(0)
       , jobsDone(0)
       , stop(false)
@@ -73,11 +74,17 @@ namespace concurrent {
       this->joinAll();
     }
 
-    void addJob(int priority, F job) {
+    bool addJob(int priority, F job) {
+      // to prevent blow up memory
+      if (this->jobsLeft >= this->maxQueueSize) {
+        return false;
+      }
+
       std::lock_guard<std::mutex> guard(this->jobsMutex);
       this->jobs.push(std::make_pair(priority, std::bind(job, std::placeholders::_1))); // _1 for thread num
       this->jobsLeft += 1;
       this->jobAvailableVar.notify_one();
+      return true;
     }
 
     int size() const {
@@ -147,6 +154,7 @@ namespace concurrent {
     > jobs;
 
     std::vector<int> jobsPerThread;
+    const std::size_t maxQueueSize;
 
     std::atomic_int jobsLeft;
     std::atomic_int jobsDone;
