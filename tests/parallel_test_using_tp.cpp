@@ -181,5 +181,8 @@ int main(int argc, char* argv[]) {
   auto amountOfJobs = pool->getAmountOfDoneJobs();
   CHECK(amountOfJobs == willDo, "getAmountOfJobs incorrect");
 
+  std::cerr << "Total amount of done work: " << willDo << std::endl;
+  std::cerr << "Total amount of tasks: " << N << std::endl;
+
   return 0;
 }
