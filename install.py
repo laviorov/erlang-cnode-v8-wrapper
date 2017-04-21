@@ -23,6 +23,7 @@ def cd(newdir):
 COMPILER = 'g++'
 
 DIRS = {
+    'tmp': 'tmp',
     'build': 'build',
     'bin': 'bin',
     'obj': 'obj',
@@ -61,6 +62,9 @@ def help():
 
 
 def setUp():
+    if not os.path.exists(DIRS['tmp']):
+        os.makedirs(DIRS['tmp'])
+
     if not os.path.exists(DIRS['build']):
         os.makedirs(DIRS['build'])
 
@@ -75,9 +79,9 @@ def setUp():
 
 
 def deps():
-    with cd('./deps/icu-56/source'):
-        if os.system('./configure --prefix={build}'.format(**DIRS)) == 0:
-            if os.system('make -j4 && make install && make clean') == 0:
+    with cd('{tmp}'.format(**DIRS)):
+        if os.system('../deps/icu-56/source/configure --prefix={build}'.format(**DIRS)) == 0:
+            if os.system('make -j4 && make install') == 0:
                 print('icu-56 has been installed!')
             else:
                 print('Problem during make icu-56')
