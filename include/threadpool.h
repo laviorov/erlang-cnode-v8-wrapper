@@ -80,8 +80,6 @@ namespace concurrent {
         return false;
       }
 
-      std::cerr << "amountOfJobs: " << this->jobsLeft + 1 << std::endl;
-
       std::lock_guard<std::mutex> guard(this->jobsMutex);
       this->jobs.push(std::make_pair(priority, std::bind(job, std::placeholders::_1))); // _1 for thread num
       this->jobsLeft += 1;
