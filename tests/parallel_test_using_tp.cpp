@@ -81,6 +81,7 @@ int main(int argc, char* argv[]) {
   const std::size_t maxExecutionTime = 1000; // milliseconds
   const std::size_t timeCheckerSleepTime = 500; // milliseconds
   const std::size_t maxRAMAvailable = std::stoi(argv[2]);
+  const std::size_t maxThreadpoolQueueSize = std::stoi(argv[3]);
   const std::size_t threadsCount = 4;
 
   auto v8 = std::make_unique<pb::V8Runner>(
@@ -93,10 +94,10 @@ int main(int argc, char* argv[]) {
     threadsCount
   );
 
-  auto pool = std::make_unique<ThreadPool>(threadsCount);
+  auto pool = std::make_unique<ThreadPool>(threadsCount, maxThreadpoolQueueSize);
 
-  auto numberOfConvs = std::stoi(argv[3]);
-  auto numberOfNodes = std::stoi(argv[4]);
+  auto numberOfConvs = std::stoi(argv[4]);
+  auto numberOfNodes = std::stoi(argv[5]);
 
   std::array<std::string, 4> commands = {
     "check",
@@ -114,7 +115,7 @@ int main(int argc, char* argv[]) {
 
   std::cerr << "compiled " << pairs.size() << " pairs." << std::endl;
 
-  int N = std::stoi(argv[5]);
+  int N = std::stoi(argv[6]);
 
   int willDo = 0;
 

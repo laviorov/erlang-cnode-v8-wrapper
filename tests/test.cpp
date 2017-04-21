@@ -604,6 +604,7 @@ int main(int argc, char** argv) {
   const std::size_t maxExecutionTime = 3000; // milliseconds
   const std::size_t timeCheckerSleepTime = 500; // milliseconds
   const std::size_t maxRAMAvailable = std::stoi(argv[2]);
+  const std::size_t maxThreadpoolQueueSize = std::stoi(argv[3]);
 
   pb::v8 = std::make_unique<pb::V8Runner>(
     argc,
@@ -615,7 +616,7 @@ int main(int argc, char** argv) {
     threadsCount
   );
 
-  pb::pool = std::make_unique<ThreadPool>(threadsCount);
+  pb::pool = std::make_unique<ThreadPool>(threadsCount, maxThreadpoolQueueSize);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
