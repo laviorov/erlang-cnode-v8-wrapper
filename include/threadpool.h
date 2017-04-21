@@ -36,16 +36,16 @@ namespace concurrent {
 
     F next_job() {
       F res;
-      std::unique_lock<std::mutex> job_lock( this->jobsMutex );
+      std::unique_lock<std::mutex> job_lock(this->jobsMutex);
 
-      jobAvailableVar.wait( job_lock, [this]() ->bool { return this->jobs.size() || this->stop; } );
+      jobAvailableVar.wait(job_lock, [this] { return this->jobs.size() || this->stop; });
 
       if(!this->stop) {
         res = this->jobs.top().second;
         this->jobs.pop();
       }
       else {
-        res = [](int){};
+        res = [](std::size_t){};
         this->jobsLeft += 1;
         this->jobsDone -= 1;
       }
