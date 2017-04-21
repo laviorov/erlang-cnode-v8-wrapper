@@ -74,7 +74,7 @@ int main(int argc, char* argv[]) {
     })
   )SCRIPT";
 
-  const std::string bigJSON = readFile("./data/big.json");
+  const std::string bigJSON = readFile("./data/intermediate.json");
 
   fs::path pathToLibs(argv[1]);
 
@@ -117,8 +117,6 @@ int main(int argc, char* argv[]) {
 
   int N = std::stoi(argv[6]);
 
-  int willDo = 0;
-
   #pragma omp parallel for num_threads(threadsCount)
   for (int i = 0; i < N; i++) {
     auto pair_index = getRandomIndex(pairs.size() - 1);
@@ -129,49 +127,57 @@ int main(int argc, char* argv[]) {
 
     if (command == "compile") {
 
-      pool->addJob(1, [pair, src, &v8](std::size_t threadNum){
-        auto res = v8->compile(
-          pair.first.c_str(),
-          pair.second.c_str(),
-          src.c_str()
-        );
-        CHECK(std::get<0>(res) == pb::V8Runner::STATUS::NO_ERR, std::get<1>(res).c_str());
-      }) ? willDo += 1 : true;
+      while(
+        !pool->addJob(1, [pair, src, &v8](std::size_t threadNum){
+          auto res = v8->compile(
+            pair.first.c_str(),
+            pair.second.c_str(),
+            src.c_str()
+          );
+          CHECK(std::get<0>(res) == pb::V8Runner::STATUS::NO_ERR, std::get<1>(res).c_str());
+        })
+      );
 
     } else if (command == "run") {
 
-      pool->addJob(0, [bigJSON, pair, &v8](std::size_t threadNum){
-        auto res = v8->run(
-          pair.first.c_str(),
-          pair.second.c_str(),
-          bigJSON.c_str()
-        );
-        CHECK(
-          std::get<0>(res) == pb::V8Runner::STATUS::NO_ERR ||
-          std::get<0>(res) == pb::V8Runner::STATUS::NOT_FUNCTION_ERR,
-          std::get<1>(res).c_str()
-        );
-      }) ? willDo += 1 : true;
+      while(
+        !pool->addJob(0, [bigJSON, pair, &v8](std::size_t threadNum){
+          auto res = v8->run(
+            pair.first.c_str(),
+            pair.second.c_str(),
+            bigJSON.c_str()
+          );
+          CHECK(
+            std::get<0>(res) == pb::V8Runner::STATUS::NO_ERR ||
+            std::get<0>(res) == pb::V8Runner::STATUS::NOT_FUNCTION_ERR,
+            std::get<1>(res).c_str()
+          );
+        })
+      );
 
     } else if (command == "remove") {
 
-      pool->addJob(1, [pair, &v8](std::size_t threadNum){
-        auto res = v8->remove(
-          pair.first.c_str(),
-          pair.second.c_str()
-        );
-        CHECK(std::get<0>(res) == pb::V8Runner::STATUS::NO_ERR, std::get<1>(res).c_str());
-      }) ? willDo += 1 : true;
+      while(
+        !pool->addJob(1, [pair, &v8](std::size_t threadNum){
+          auto res = v8->remove(
+            pair.first.c_str(),
+            pair.second.c_str()
+          );
+          CHECK(std::get<0>(res) == pb::V8Runner::STATUS::NO_ERR, std::get<1>(res).c_str());
+        })
+      );
 
     } else if (command == "check") {
 
-      pool->addJob(0, [src, &v8](std::size_t threadNum){
-        auto res = v8->checkCode(
-          src.c_str(),
-          "{}"
-        );
-        CHECK(std::get<0>(res) == pb::V8Runner::STATUS::NO_ERR, std::get<1>(res).c_str());
-      }) ? willDo += 1 : true;
+      while(
+        !pool->addJob(0, [src, &v8](std::size_t threadNum){
+          auto res = v8->checkCode(
+            src.c_str(),
+            "{}"
+          );
+          CHECK(std::get<0>(res) == pb::V8Runner::STATUS::NO_ERR, std::get<1>(res).c_str());
+        })
+      );
     }
 
   } // end of for loop
@@ -179,10 +185,7 @@ int main(int argc, char* argv[]) {
   pool->joinAll();
 
   auto amountOfJobs = pool->getAmountOfDoneJobs();
-  CHECK(amountOfJobs == willDo, "getAmountOfJobs incorrect");
-
-  std::cerr << "Total amount of done work: " << willDo << std::endl;
-  std::cerr << "Total amount of tasks: " << N << std::endl;
+  CHECK(amountOfJobs == N, "getAmountOfJobs incorrect");
 
   return 0;
 }
