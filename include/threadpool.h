@@ -55,7 +55,7 @@ namespace concurrent {
   public:
     ThreadPool(const std::size_t& threadCount, const size_t& _maxQueueSize)
       : jobsPerThread(threadCount)
-      , maxQueueSize(maxQueueSize)
+      , maxQueueSize(_maxQueueSize)
       , jobsLeft(0)
       , jobsDone(0)
       , stop(false)
@@ -79,6 +79,8 @@ namespace concurrent {
       if (this->jobsLeft >= this->maxQueueSize) {
         return false;
       }
+
+      std::cerr << "amountOfJobs: " << this->jobsLeft + 1 << std::endl;
 
       std::lock_guard<std::mutex> guard(this->jobsMutex);
       this->jobs.push(std::make_pair(priority, std::bind(job, std::placeholders::_1))); // _1 for thread num
