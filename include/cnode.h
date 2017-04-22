@@ -45,14 +45,15 @@ public:
     OK = 0,
     ERR = 1,
     SOCKET_TIMEOUT = 100,
-    THREAD_POOL_TIMEOUT = 101
+    THREAD_POOL_TIMEOUT = 101,
+    THREAD_POOL_EXHAUSTED = 102
   };
 
 public:
   CNode(
     const std::shared_ptr<pb::V8Runner>& v8,
     const std::size_t& maxDiffTime,
-    const std::size_t& threadsCount
+    ThreadPool& pool
   );
 
   void process(int fd, ErlMessage*& emsg);
@@ -68,7 +69,7 @@ public:
 private:
   std::shared_ptr<pb::V8Runner> _v8;
   std::size_t _maxDiffTime;
-  ThreadPool _pool;
+  ThreadPool& _pool;
 
   std::unordered_map<std::string, int> _priorityMap {
     {"check_code", 0},

@@ -30,15 +30,14 @@ namespace concurrent {
         }
         this->jobsLeft -= 1;
         this->jobsDone += 1;
-        waitVar.notify_one();
       }
     }
 
     F next_job() {
       F res;
-      std::unique_lock<std::mutex> job_lock(this->jobsMutex);
 
-      jobAvailableVar.wait(job_lock, [this] { return this->jobs.size() || this->stop; });
+      std::unique_lock<std::mutex> job_lock(this->jobsMutex);
+      this->jobAvailableVar.wait(job_lock, [this] { return this->jobs.size() || this->stop; });
 
       if(!this->stop) {
         res = this->jobs.top().second;
@@ -55,10 +54,9 @@ namespace concurrent {
   public:
     ThreadPool(const std::size_t& threadCount, const size_t& _maxQueueSize)
       : jobsPerThread(threadCount)
-      , maxQueueSize(_maxQueueSize)
+      , maxQueueSize(maxQueueSize)
       , jobsLeft(0)
       , jobsDone(0)
-      , busyThreads(0)
       , stop(false)
       , finished(false)
     {
@@ -77,12 +75,11 @@ namespace concurrent {
 
     bool addJob(int priority, F job) {
       // to prevent blow up memory
-      if (this->jobsLeft >= std::atomic_int(this->maxQueueSize)) {
+      if (this->jobsLeft >= this->maxQueueSize) {
         return false;
       }
-
-      std::lock_guard<std::mutex> guard(this->jobsMutex);
-      this->jobs.push(std::make_pair(priority, std::bind(job, std::placeholders::_1))); // _1 for thread num
+      auto job = std::make_pair(priority, std::bind(job, std::placeholders::_1)); // _1 for thread num
+      this->jobs.push(job);
       this->jobsLeft += 1;
       this->jobAvailableVar.notify_one();
       return true;
