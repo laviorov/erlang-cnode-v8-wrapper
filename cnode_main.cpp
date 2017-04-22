@@ -16,6 +16,7 @@ int main(int argc, char **argv) {
   const std::size_t maxExecutionTime = 1000; // milliseconds
   const std::size_t timeCheckerSleepTime = 500; // milliseconds
   const std::size_t maxRAMAvailable = std::stoi(argv[2]);
+  const std::size_t maxThreadpoolQueueSize = std::stoi(argv[3]);
   const std::size_t threadsCount = 4;
 
   auto v8 = std::make_shared<pb::V8Runner>(
@@ -30,16 +31,17 @@ int main(int argc, char **argv) {
 
   const std::size_t maxDiffTime = 1000000; // milliseconds
 
-  auto cnode = std::make_shared<CNode>(v8, maxDiffTime, threadsCount);
+  ThreadPool pool(threadsCount, maxThreadpoolQueueSize);
+  auto cnode = std::make_shared<CNode>(v8, maxDiffTime, pool);
 
-  int fd;
+  int fd = 0;
 
   int loop = 1;
   unsigned char buf[BUFSIZE];
 
-  auto id = atoi(argv[3]);
-  auto parent_node_name = argv[4];
-  auto cookie = argv[5];
+  auto id = atoi(argv[4]);
+  auto parent_node_name = argv[5];
+  auto cookie = argv[6];
 
   erl_init(NULL, 0);
 
