@@ -1,20 +1,9 @@
-## Deps
-  ### 1. You need to have icu-56 lib.
-
-## Compile gtest
-  "g++ -I gtest/include/ -I gtest/ -c gtest/src/gtest-all.cc",<br />
-  "ar -rv lib/libgtest.a gtest-all.o",<br />
-  "rm gtest-all.o"<br />
-
-## Todo
-  ### 1. Reimplement threadpool.
-
-## Docs
-
 ### Start Erlang shell
   erl -name cnode@localhost.localdomain -setcookie cookie
 ### Start CNode
-  valgrind --leak-check=full --show-leak-kinds=all  ./bin/cserver <DIR_WITH_LIBS> <RAM> 1 cnode@localhost.localdomain cookie
+  ./bin/cnode <V8_PATH> <RAM in Gb> <maxThreadpoolQueueSize>  1 cnode@localhost.localdomain cookie
+### Handy valgrind command
+  valgrind --leak-check=full --show-leak-kinds=all
 
 ### get_statistics
   {any, 'c1@localhost'} ! {call, self(), {TIMESTAMP_IN_MILLISECONDS, get_statistics}}.
