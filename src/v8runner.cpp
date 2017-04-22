@@ -100,8 +100,11 @@ std::unordered_map<std::string, std::string> V8Runner::loadLibs() {
 
   std::unique_lock<std::shared_mutex> lock(V8Runner::_requireCacheMutex);
 
+  bool found = false;
   for (fs::recursive_directory_iterator i(V8Runner::_pathToLibs), end; i != end; ++i) {
     if (!fs::is_directory(i->path()) && i->path().extension() == ".js") {
+
+      found = true;
 
       auto requireFile = V8Runner::_getRequireFile(i->path().string());
 
@@ -120,6 +123,12 @@ std::unordered_map<std::string, std::string> V8Runner::loadLibs() {
 
       V8Runner::_requireCache[libPath] = std::get<DATA>(requireFile);
     }
+  }
+
+  if (!found) {
+    std::cerr << "[WARNING] [loadLibs] "
+              << "Didn't find any .js file. "
+              << "Please, check lib path." << std::endl;
   }
 
   return V8Runner::_requireCache;

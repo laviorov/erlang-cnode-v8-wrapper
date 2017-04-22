@@ -3,8 +3,8 @@
 CNode::CNode(
   const std::shared_ptr<pb::V8Runner>& v8,
   const std::size_t& maxDiffTime,
-  const std::size_t& threadsCount
-):_v8(v8), _maxDiffTime(maxDiffTime), _pool(threadsCount) {}
+  ThreadPool& pool
+):_v8(v8), _maxDiffTime(maxDiffTime), _pool(pool) {}
 
 void CNode::process(int fd, ErlMessage*& emsg) {
 
@@ -201,7 +201,10 @@ void CNode::process(int fd, ErlMessage*& emsg) {
     ); // _1 for thread num
     int priority = this->_priorityMap[ERL_ATOM_PTR(func.get())];
 
-    this->_pool.addJob(priority, job);
+    if(!this->_pool.addJob(priority, job)) {
+      auto resp = ETERMptr(erl_format("{cnode, ~i, ~b}", CNode::STATUS::THREAD_POOL_EXHAUSTED, "Thread pool exhausted. Try later."), ErlFreeTerm);
+      erl_send(fd, fromp.get(), resp.get());
+    }
   }
 
 }
