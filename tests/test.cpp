@@ -546,51 +546,58 @@ namespace pb {
       int tid = omp_get_thread_num();
       switch(tid) {
         case 0:
-          pool->addJob(1, [pair=pairs[i], this](std::size_t threadNum){
-            auto res = v8->compile(
-              pair.first.c_str(),
-              pair.second.c_str(),
-              defaultCode.c_str()
-            );
-            CHECK(std::get<0>(res) == pb::V8Runner::STATUS::NO_ERR, std::get<1>(res).c_str());
-          });
+          while(
+            !pool->addJob(1, [pair=pairs[i], this](std::size_t threadNum){
+              auto res = v8->compile(
+                pair.first.c_str(),
+                pair.second.c_str(),
+                defaultCode.c_str()
+              );
+              CHECK(std::get<0>(res) == pb::V8Runner::STATUS::NO_ERR, std::get<1>(res).c_str());
+            })
+          );
           break;
         case 1:
-          pool->addJob(0, [pair=pairs[i]](std::size_t threadNum){
-            auto res = v8->run(
-              pair.first.c_str(),
-              pair.second.c_str(),
-              "{\"a\": 1, \"b\": 2, \"arr\": [1, 2, 3]}"
-            );
-            CHECK(std::get<0>(res) == pb::V8Runner::STATUS::NO_ERR, std::get<1>(res).c_str());
-          });
+          while(
+            !pool->addJob(0, [pair=pairs[i]](std::size_t threadNum){
+              auto res = v8->run(
+                pair.first.c_str(),
+                pair.second.c_str(),
+                "{\"a\": 1, \"b\": 2, \"arr\": [1, 2, 3]}"
+              );
+              CHECK(std::get<0>(res) == pb::V8Runner::STATUS::NO_ERR, std::get<1>(res).c_str());
+            })
+          );
           break;
         case 2:
-          pool->addJob(1, [pair=pairs[i]](std::size_t threadNum){
-            for (int i = 0; i < 10000; i++);
-            auto res = v8->remove(
-              pair.first.c_str(),
-              pair.second.c_str()
-            );
-            CHECK(std::get<0>(res) == pb::V8Runner::STATUS::NO_ERR, std::get<1>(res).c_str());
-          });
+          while(
+            !pool->addJob(1, [pair=pairs[i]](std::size_t threadNum){
+              auto res = v8->remove(
+                pair.first.c_str(),
+                pair.second.c_str()
+              );
+              CHECK(std::get<0>(res) == pb::V8Runner::STATUS::NO_ERR, std::get<1>(res).c_str());
+            })
+          );
           break;
         case 3:
-          pool->addJob(0, [this](std::size_t threadNum){
-            auto res = v8->checkCode(
-              defaultCode.c_str(),
-              "{}"
-            );
-            CHECK(std::get<0>(res) == pb::V8Runner::STATUS::NO_ERR, std::get<1>(res).c_str());
-          });
+          while(
+            !pool->addJob(0, [this](std::size_t threadNum){
+              auto res = v8->checkCode(
+                defaultCode.c_str(),
+                "{}"
+              );
+              CHECK(std::get<0>(res) == pb::V8Runner::STATUS::NO_ERR, std::get<1>(res).c_str());
+            })
+          );
           break;
       }
     }
 
-    pool->joinAll(true);
+    pool->joinAll();
 
     auto amountOfJobs = pool->getAmountOfDoneJobs();
-    CHECK(amountOfJobs == pairs.size(), "getAmountOfJobs incorrect");
+    CHECK(amountOfJobs == pairs.size(), "getAmountOfDoneJobs incorrect");
   }
 
 } // namespace
