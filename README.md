@@ -1,9 +1,22 @@
 ### Start Erlang shell
   erl -name cnode@localhost.localdomain -setcookie cookie
 ### Start CNode
-  ./bin/cnode <V8_PATH> <RAM in Gb> <maxThreadpoolQueueSize>  1 cnode@localhost.localdomain cookie
+  ./bin/cnode <V8_PATH> <RAM_in_Gb> <max_Threadpool_Queue_Size>  1 cnode@localhost.localdomain cookie
 ### Handy valgrind command
   valgrind --leak-check=full --show-leak-kinds=all
+
+## How to use
+
+### Deps
+  ./install.py deps
+### V8 (TODO)
+  ./install.py v8 <version>
+### Tests
+  ./install.py tests <path_to_v8>
+### Cnode
+  ./install.py cnode <path_to_v8>
+
+## Erlang commands
 
 ### get_statistics
   {any, 'c1@localhost'} ! {call, self(), {TIMESTAMP_IN_MILLISECONDS, get_statistics}}.
