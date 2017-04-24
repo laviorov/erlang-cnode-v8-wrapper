@@ -97,7 +97,7 @@ namespace concurrent {
     }
 
     int getAmountOfDoneJobs() const {
-      return int(this->jobsDone);
+      return this->jobsDone;
     }
 
     int getJobsLeft() const {
