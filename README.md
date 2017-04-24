@@ -7,7 +7,11 @@
   ./bin/tests <LIBS_PATH> <RAM_in_Gb> <max_Threadpool_Queue_Size>
 ### Cnode
   ./install.py cnode <path_to_v8> <br>
-  ./bin/cnode <V8_PATH> <RAM_in_Gb> <max_Threadpool_Queue_Size>  1 cnode@localhost.localdomain cookie
+  ./bin/cnode <LIBS_PATH> <RAM_in_Gb> <max_Threadpool_Queue_Size>  1 cnode@localhost.localdomain cookie
+
+## Important
+  ### Do not forget to export LD_LIBRARY_PATH=<some_path>/icu-56/source/lib:<some_path>/lib:<v8_path>/out.gn/x64.release
+
 
 ## Erlang commands
 
