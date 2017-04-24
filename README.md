@@ -3,10 +3,10 @@
 ### V8 (TODO)
   ./install.py v8 <version>
 ### Tests
-  ./install.py tests <path_to_v8>
+  ./install.py tests <path_to_v8> <br>
   ./bin/tests <LIBS_PATH> <RAM_in_Gb> <max_Threadpool_Queue_Size>
 ### Cnode
-  ./install.py cnode <path_to_v8>
+  ./install.py cnode <path_to_v8> <br>
   ./bin/cnode <V8_PATH> <RAM_in_Gb> <max_Threadpool_Queue_Size>  1 cnode@localhost.localdomain cookie
 
 ## Erlang commands
